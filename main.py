@@ -115,8 +115,14 @@ def post_on_wall(img_media_id, img_owner_id, comment, vk_group_id):
     return response.json()
 
 
-def post_comic():
-
+def post_comic(vk_group_id, file_path, comment):
+    serv_url = get_server_url(vk_group_id)
+    sending_params = send_file_to_serv(serv_url, file_path)
+    seving_params = save_file_to_album(vk_group_id, sending_params)
+    post_on_wall(seving_params['response'][0]['id'],
+                 seving_params['response'][0]['owner_id'],
+                 comment,
+                 vk_group_id)
 
 
 def main():
@@ -134,14 +140,7 @@ def main():
         comic_id = random.randint(1, last_comic_id)
     file_path, comment = download_xkcd_comic(comic_id)
     #pprint.pprint(get_groups(vk_user_id))
-
-    serv_url = get_server_url(vk_group_id)
-    sending_params = send_file_to_serv(serv_url, file_path)
-    seving_params = save_file_to_album(vk_group_id, sending_params)
-    post_on_wall(seving_params['response'][0]['id'], 
-                 seving_params['response'][0]['owner_id'], 
-                 comment, 
-                 vk_group_id)    
+    post_comic(vk_group_id, file_path, comment)
 
 
 if __name__ == '__main__':
