@@ -91,7 +91,7 @@ def post_on_wall(img_media_id, img_owner_id, comment, vk_group_id):
     url = 'https://api.vk.com/method/wall.post'
     payload = {
         'attachments': f'photo{img_owner_id}_{img_media_id}',
-        'message':comment,
+        'message': comment,
         'from_group': 1,
         'owner_id': f'-{vk_group_id}',
         'group_id': vk_group_id,
@@ -113,7 +113,6 @@ def post_comic(vk_group_id, file_path, comment):
 
 
 def main():
-    vk_user_id = os.environ['VK_USER_ID']
     vk_group_id = os.environ['VK_GROUP_ID']
     Path(IMG_FOLDER).mkdir(parents=True, exist_ok=True)
 
