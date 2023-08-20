@@ -20,6 +20,22 @@ def create_parser():
     return parser
 
 
+def get_comic_id_arg():
+    parser = create_parser()
+    args = parser.parse_args()
+
+    last_comic_id = get_xkcd_comic()['num']
+    if args.comic_id:
+        if args.comic_id > last_comic_id:
+            raise ValueError(
+                f'Не существует комикса с номером {args.comic_id}.\n'
+                f'Последний комикс имеет номер {last_comic_id}.'
+            )
+        return args.comic_id
+    else:
+        return random.randint(1, last_comic_id)
+
+
 def fetch_image(image_name, url, payload=None, folder=IMG_FOLDER):
     response = requests.get(url, params=payload)
     response.raise_for_status()
@@ -116,14 +132,12 @@ def main():
     vk_group_id = os.environ['VK_GROUP_ID']
     Path(IMG_FOLDER).mkdir(parents=True, exist_ok=True)
 
-    parser = create_parser()
-    args = parser.parse_args()
+    try:
+        comic_id = get_comic_id_arg()
+    except ValueError as err:
+        print(err)
+        return
 
-    if args.comic_id:
-        comic_id = args.comic_id
-    else:
-        last_comic_id = get_xkcd_comic()['num']
-        comic_id = random.randint(1, last_comic_id)
     file_path, comment = download_xkcd_comic(comic_id)
     post_comic(vk_group_id, file_path, comment)
     os.remove(file_path)
