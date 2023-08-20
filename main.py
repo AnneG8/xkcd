@@ -128,6 +128,7 @@ def main():
         comic_id = random.randint(1, last_comic_id)
     file_path, comment = download_xkcd_comic(comic_id)
     post_comic(vk_group_id, file_path, comment)
+    os.remove(file_path)
 
 
 if __name__ == '__main__':
