@@ -5,7 +5,6 @@ import requests
 import argparse
 import os
 import random
-import pprint
 IMG_FOLDER = 'images'
 load_dotenv()
 VK_APP_TOKEN = os.environ['VK_APP_ACCESS_TOKEN']
