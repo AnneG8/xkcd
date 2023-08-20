@@ -53,18 +53,6 @@ def get_header():
     return {'Authorization': f'Bearer {VK_APP_TOKEN}'}
 
 
-def get_groups(vk_user_id):
-    url = 'https://api.vk.com/method/groups.get'
-    payload = {
-        'extended': 1,
-        'user_id': vk_user_id,
-        'v': VK_VERS,
-    }
-    response = requests.get(url, params=payload, headers=get_header())
-    response.raise_for_status()
-    return response.json()
-
-
 def get_server_url(vk_group_id):
     url = 'https://api.vk.com/method/photos.getWallUploadServer'
     payload = {
@@ -139,7 +127,6 @@ def main():
         last_comic_id = get_xkcd_comic()['num']
         comic_id = random.randint(1, last_comic_id)
     file_path, comment = download_xkcd_comic(comic_id)
-    #pprint.pprint(get_groups(vk_user_id))
     post_comic(vk_group_id, file_path, comment)
 
 
