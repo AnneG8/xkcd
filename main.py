@@ -52,14 +52,12 @@ def get_server_url(vk_group_id, vk_vers, vk_app_token):
     return response.json()['response']['upload_url']
 
 
-def send_file_to_serv(serv_url, file_path):
+def upload_file_to_serv(serv_url, file_path):
     with open(file_path, 'rb') as file:
-        payload = {
-            'photo': file
-        }
-        response = requests.post(serv_url, files=payload)
-        response.raise_for_status()
-        return response.json()
+        payload = {'photo': file}
+    response = requests.post(serv_url, files=payload)
+    response.raise_for_status()
+    return response.json()
 
 
 def save_file_to_album(vk_group_id, sending_params, vk_vers, vk_app_token):
@@ -96,7 +94,7 @@ def post_on_wall(img_media_id, img_owner_id, comment,
 
 def post_comic(vk_group_id, file_path, comment, vk_vers, vk_app_token):
     serv_url = get_server_url(vk_group_id, vk_vers, vk_app_token)
-    sending_params = send_file_to_serv(serv_url, file_path)
+    sending_params = upload_file_to_serv(serv_url, file_path)
     seving_params = save_file_to_album(vk_group_id, 
                                        sending_params, 
                                        vk_vers,
