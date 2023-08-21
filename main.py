@@ -60,12 +60,13 @@ def upload_file_to_serv(serv_url, file_path):
     return response.json()
 
 
-def save_file_to_album(vk_group_id, sending_params, vk_vers, vk_app_token):
+def save_file_to_album(vk_group_id, sending_hash, sending_photo,
+                       sending_server, vk_vers, vk_app_token):
     url = 'https://api.vk.com/method/photos.saveWallPhoto'
     payload = {
-        'hash': sending_params['hash'],
-        'photo': sending_params['photo'],
-        'server': sending_params['server'],
+        'hash': sending_hash,
+        'photo': sending_photo,
+        'server': sending_server,
         'group_id': vk_group_id,
         'v': vk_vers,
     }
@@ -96,7 +97,9 @@ def post_comic(vk_group_id, file_path, comment, vk_vers, vk_app_token):
     serv_url = get_server_url(vk_group_id, vk_vers, vk_app_token)
     sending_params = upload_file_to_serv(serv_url, file_path)
     seving_params = save_file_to_album(vk_group_id, 
-                                       sending_params, 
+                                       sending_params['hash'],
+                                       sending_params['photo'],
+                                       sending_params['server'],
                                        vk_vers,
                                        vk_app_token)
     post_on_wall(seving_params['response'][0]['id'],
