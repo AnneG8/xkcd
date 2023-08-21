@@ -121,8 +121,10 @@ def main():
     comic_id = get_comic_id_arg()
 
     file_path, comment = download_xkcd_comic(comic_id)
-    post_comic(vk_group_id, file_path, comment, vk_vers, vk_app_token)
-    os.remove(file_path)
+    try:
+        post_comic(vk_group_id, file_path, comment, vk_vers, vk_app_token)
+    finally:
+        os.remove(file_path)
 
 
 if __name__ == '__main__':
