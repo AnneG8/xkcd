@@ -40,19 +40,14 @@ def download_xkcd_comic(comic_id):
     return fetch_image(filename, image_url), comment
 
 
-def get_header(vk_app_token):
-    return {'Authorization': f'Bearer {vk_app_token}'}
-
-
 def get_server_url(vk_group_id, vk_vers, vk_app_token):
     url = 'https://api.vk.com/method/photos.getWallUploadServer'
     payload = {
         'group_id': vk_group_id,
         'v': vk_vers,
     }
-    response = requests.get(url, 
-                            params=payload, 
-                            headers=get_header(vk_app_token))
+    header = {'Authorization': f'Bearer {vk_app_token}'}
+    response = requests.get(url, params=payload, headers=header)
     response.raise_for_status()
     return response.json()['response']['upload_url']
 
@@ -76,9 +71,8 @@ def save_file_to_album(vk_group_id, sending_params, vk_vers, vk_app_token):
         'group_id': vk_group_id,
         'v': vk_vers,
     }
-    response = requests.post(url, 
-                             params=payload, 
-                             headers=get_header(vk_app_token))
+    header = {'Authorization': f'Bearer {vk_app_token}'}
+    response = requests.post(url, params=payload, headers=header)
     response.raise_for_status()
     return response.json()
 
@@ -94,9 +88,8 @@ def post_on_wall(img_media_id, img_owner_id, comment,
         'group_id': vk_group_id,
         'v': vk_vers,
     }
-    response = requests.post(url, 
-                             params=payload, 
-                             headers=get_header(vk_app_token))
+    header = {'Authorization': f'Bearer {vk_app_token}'}
+    response = requests.post(url, params=payload, headers=header)
     response.raise_for_status()
     return response.json()
 
@@ -121,7 +114,7 @@ def main():
     vk_app_token = os.environ['VK_APP_ACCESS_TOKEN']
     vk_vers = os.environ['VK_API_VERS']
     vk_group_id = os.environ['VK_GROUP_ID']
-    
+
     Path(IMG_FOLDER).mkdir(parents=True, exist_ok=True)
 
     comic_id = get_comic_id_arg()
