@@ -2,35 +2,14 @@ from pathlib import Path
 from urllib.parse import urlsplit, unquote
 from dotenv import load_dotenv
 import requests
-import argparse
 import os
 import random
 IMG_FOLDER = 'images'
 
 
-def create_parser():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-id', '--comic_id',
-                        type=int,
-                        default=0, const=0,
-                        nargs='?')
-    return parser
-
-
 def get_comic_id_arg():
-    parser = create_parser()
-    args = parser.parse_args()
-
     last_comic_id = get_xkcd_comic()['num']
-    if args.comic_id:
-        if args.comic_id > last_comic_id:
-            raise ValueError(
-                f'Не существует комикса с номером {args.comic_id}.\n'
-                f'Последний комикс имеет номер {last_comic_id}.'
-            )
-        return args.comic_id
-    else:
-        return random.randint(1, last_comic_id)
+    return random.randint(1, last_comic_id)
 
 
 def fetch_image(image_name, url, payload=None, folder=IMG_FOLDER):
@@ -142,13 +121,10 @@ def main():
     vk_app_token = os.environ['VK_APP_ACCESS_TOKEN']
     vk_vers = os.environ['VK_API_VERS']
     vk_group_id = os.environ['VK_GROUP_ID']
+    
     Path(IMG_FOLDER).mkdir(parents=True, exist_ok=True)
 
-    try:
-        comic_id = get_comic_id_arg()
-    except ValueError as err:
-        print(err)
-        return
+    comic_id = get_comic_id_arg()
 
     file_path, comment = download_xkcd_comic(comic_id)
     post_comic(vk_group_id, file_path, comment, vk_vers, vk_app_token)
