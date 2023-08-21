@@ -6,9 +6,6 @@ import argparse
 import os
 import random
 IMG_FOLDER = 'images'
-load_dotenv()
-VK_APP_TOKEN = os.environ['VK_APP_ACCESS_TOKEN']
-VK_VERS = os.environ['VK_API_VERS']
 
 
 def create_parser():
@@ -64,17 +61,19 @@ def download_xkcd_comic(comic_id):
     return fetch_image(filename, image_url), comment
 
 
-def get_header():
-    return {'Authorization': f'Bearer {VK_APP_TOKEN}'}
+def get_header(vk_app_token):
+    return {'Authorization': f'Bearer {vk_app_token}'}
 
 
-def get_server_url(vk_group_id):
+def get_server_url(vk_group_id, vk_vers, vk_app_token):
     url = 'https://api.vk.com/method/photos.getWallUploadServer'
     payload = {
         'group_id': vk_group_id,
-        'v': VK_VERS,
+        'v': vk_vers,
     }
-    response = requests.get(url, params=payload, headers=get_header())
+    response = requests.get(url, 
+                            params=payload, 
+                            headers=get_header(vk_app_token))
     response.raise_for_status()
     return response.json()['response']['upload_url']
 
@@ -89,21 +88,24 @@ def send_file_to_serv(serv_url, file_path):
         return response.json()
 
 
-def save_file_to_album(vk_group_id, sending_params):
+def save_file_to_album(vk_group_id, sending_params, vk_vers, vk_app_token):
     url = 'https://api.vk.com/method/photos.saveWallPhoto'
     payload = {
         'hash': sending_params['hash'],
         'photo': sending_params['photo'],
         'server': sending_params['server'],
         'group_id': vk_group_id,
-        'v': VK_VERS,
+        'v': vk_vers,
     }
-    response = requests.post(url, params=payload, headers=get_header())
+    response = requests.post(url, 
+                             params=payload, 
+                             headers=get_header(vk_app_token))
     response.raise_for_status()
     return response.json()
 
 
-def post_on_wall(img_media_id, img_owner_id, comment, vk_group_id):
+def post_on_wall(img_media_id, img_owner_id, comment, 
+                 vk_group_id, vk_vers, vk_app_token):
     url = 'https://api.vk.com/method/wall.post'
     payload = {
         'attachments': f'photo{img_owner_id}_{img_media_id}',
@@ -111,24 +113,34 @@ def post_on_wall(img_media_id, img_owner_id, comment, vk_group_id):
         'from_group': 1,
         'owner_id': f'-{vk_group_id}',
         'group_id': vk_group_id,
-        'v': VK_VERS,
+        'v': vk_vers,
     }
-    response = requests.post(url, params=payload, headers=get_header())
+    response = requests.post(url, 
+                             params=payload, 
+                             headers=get_header(vk_app_token))
     response.raise_for_status()
     return response.json()
 
 
-def post_comic(vk_group_id, file_path, comment):
-    serv_url = get_server_url(vk_group_id)
+def post_comic(vk_group_id, file_path, comment, vk_vers, vk_app_token):
+    serv_url = get_server_url(vk_group_id, vk_vers, vk_app_token)
     sending_params = send_file_to_serv(serv_url, file_path)
-    seving_params = save_file_to_album(vk_group_id, sending_params)
+    seving_params = save_file_to_album(vk_group_id, 
+                                       sending_params, 
+                                       vk_vers,
+                                       vk_app_token)
     post_on_wall(seving_params['response'][0]['id'],
                  seving_params['response'][0]['owner_id'],
                  comment,
-                 vk_group_id)
+                 vk_group_id,
+                 vk_vers,
+                 vk_app_token)
 
 
 def main():
+    load_dotenv()
+    vk_app_token = os.environ['VK_APP_ACCESS_TOKEN']
+    vk_vers = os.environ['VK_API_VERS']
     vk_group_id = os.environ['VK_GROUP_ID']
     Path(IMG_FOLDER).mkdir(parents=True, exist_ok=True)
 
@@ -139,7 +151,7 @@ def main():
         return
 
     file_path, comment = download_xkcd_comic(comic_id)
-    post_comic(vk_group_id, file_path, comment)
+    post_comic(vk_group_id, file_path, comment, vk_vers, vk_app_token)
     os.remove(file_path)
 
 
