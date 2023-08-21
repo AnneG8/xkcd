@@ -76,7 +76,7 @@ def save_file_to_album(vk_group_id, sending_hash, sending_photo,
     return response.json()
 
 
-def post_on_wall(img_media_id, img_owner_id, comment, 
+def post_on_wall(img_media_id, img_owner_id, comment,
                  vk_group_id, vk_vers, vk_app_token):
     url = 'https://api.vk.com/method/wall.post'
     payload = {
@@ -96,7 +96,7 @@ def post_on_wall(img_media_id, img_owner_id, comment,
 def post_comic(vk_group_id, file_path, comment, vk_vers, vk_app_token):
     serv_url = get_server_url(vk_group_id, vk_vers, vk_app_token)
     sending_params = upload_file_to_serv(serv_url, file_path)
-    seving_params = save_file_to_album(vk_group_id, 
+    seving_params = save_file_to_album(vk_group_id,
                                        sending_params['hash'],
                                        sending_params['photo'],
                                        sending_params['server'],
