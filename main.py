@@ -4,12 +4,13 @@ from dotenv import load_dotenv
 import requests
 import os
 import random
+
+
 IMG_FOLDER = 'images'
 
 
-def get_comic_id_arg():
-    last_comic_id = get_xkcd_comic()['num']
-    return random.randint(1, last_comic_id)
+class HTTPErrorVK(requests.HTTPError):
+    pass
 
 
 def fetch_image(image_name, url, payload=None, folder=IMG_FOLDER):
@@ -40,6 +41,12 @@ def download_xkcd_comic(comic_id):
     return fetch_image(filename, image_url), comment
 
 
+def raise_vk_error(response):
+    response = response.json()
+    if 'error' in response:
+        raise HTTPErrorVK(response['error']['error_msg'])
+
+
 def get_server_url(vk_group_id, vk_vers, vk_app_token):
     url = 'https://api.vk.com/method/photos.getWallUploadServer'
     payload = {
@@ -49,30 +56,33 @@ def get_server_url(vk_group_id, vk_vers, vk_app_token):
     header = {'Authorization': f'Bearer {vk_app_token}'}
     response = requests.get(url, params=payload, headers=header)
     response.raise_for_status()
+    raise_vk_error(response)
     return response.json()['response']['upload_url']
 
 
 def upload_file_to_serv(serv_url, file_path):
     with open(file_path, 'rb') as file:
         payload = {'photo': file}
-    response = requests.post(serv_url, files=payload)
+        response = requests.post(serv_url, files=payload)
     response.raise_for_status()
+    raise_vk_error(response)
     return response.json()
 
 
-def save_file_to_album(vk_group_id, sending_hash, sending_photo,
-                       sending_server, vk_vers, vk_app_token):
+def save_file_to_album(vk_group_id, hash_, photo_,
+                       server_, vk_vers, vk_app_token):
     url = 'https://api.vk.com/method/photos.saveWallPhoto'
     payload = {
-        'hash': sending_hash,
-        'photo': sending_photo,
-        'server': sending_server,
+        'hash': hash_,
+        'photo': photo_,
+        'server': server_,
         'group_id': vk_group_id,
         'v': vk_vers,
     }
     header = {'Authorization': f'Bearer {vk_app_token}'}
     response = requests.post(url, params=payload, headers=header)
     response.raise_for_status()
+    raise_vk_error(response)
     return response.json()
 
 
@@ -90,24 +100,28 @@ def post_on_wall(img_media_id, img_owner_id, comment,
     header = {'Authorization': f'Bearer {vk_app_token}'}
     response = requests.post(url, params=payload, headers=header)
     response.raise_for_status()
+    raise_vk_error(response)
     return response.json()
 
 
 def post_comic(vk_group_id, file_path, comment, vk_vers, vk_app_token):
-    serv_url = get_server_url(vk_group_id, vk_vers, vk_app_token)
-    sending_params = upload_file_to_serv(serv_url, file_path)
-    seving_params = save_file_to_album(vk_group_id,
-                                       sending_params['hash'],
-                                       sending_params['photo'],
-                                       sending_params['server'],
-                                       vk_vers,
-                                       vk_app_token)
-    post_on_wall(seving_params['response'][0]['id'],
-                 seving_params['response'][0]['owner_id'],
-                 comment,
-                 vk_group_id,
-                 vk_vers,
-                 vk_app_token)
+    try:
+        serv_url = get_server_url(vk_group_id, vk_vers, vk_app_token)
+        uploaded_items = upload_file_to_serv(serv_url, file_path)
+        saving_params = save_file_to_album(vk_group_id,
+                                           uploaded_items['hash'],
+                                           uploaded_items['photo'],
+                                           uploaded_items['server'],
+                                           vk_vers,
+                                           vk_app_token)
+        post_on_wall(saving_params['response'][0]['id'],
+                     saving_params['response'][0]['owner_id'],
+                     comment,
+                     vk_group_id,
+                     vk_vers,
+                     vk_app_token)
+    except HTTPErrorVK as err:
+        print("HTTPErrorVK:", err)
 
 
 def main():
@@ -118,7 +132,8 @@ def main():
 
     Path(IMG_FOLDER).mkdir(parents=True, exist_ok=True)
 
-    comic_id = get_comic_id_arg()
+    last_comic_id = get_xkcd_comic()['num']
+    comic_id = random.randint(1, last_comic_id)
 
     file_path, comment = download_xkcd_comic(comic_id)
     try:
