@@ -105,23 +105,21 @@ def post_on_wall(img_media_id, img_owner_id, comment,
 
 
 def post_comic(vk_group_id, file_path, comment, vk_vers, vk_app_token):
-    try:
-        serv_url = get_server_url(vk_group_id, vk_vers, vk_app_token)
-        uploaded_items = upload_file_to_serv(serv_url, file_path)
-        saving_params = save_file_to_album(vk_group_id,
-                                           uploaded_items['hash'],
-                                           uploaded_items['photo'],
-                                           uploaded_items['server'],
-                                           vk_vers,
-                                           vk_app_token)
-        post_on_wall(saving_params['response'][0]['id'],
-                     saving_params['response'][0]['owner_id'],
-                     comment,
-                     vk_group_id,
-                     vk_vers,
-                     vk_app_token)
-    except HTTPErrorVK as err:
-        print("HTTPErrorVK:", err)
+    serv_url = get_server_url(vk_group_id, vk_vers, vk_app_token)
+    uploaded_items = upload_file_to_serv(serv_url, file_path)
+    saving_params = save_file_to_album(vk_group_id,
+                                       uploaded_items['hash'],
+                                       uploaded_items['photo'],
+                                       uploaded_items['server'],
+                                       vk_vers,
+                                       vk_app_token)
+    post_on_wall(saving_params['response'][0]['id'],
+                 saving_params['response'][0]['owner_id'],
+                 comment,
+                 vk_group_id,
+                 vk_vers,
+                 vk_app_token)
+    
 
 
 def main():
@@ -138,6 +136,8 @@ def main():
     file_path, comment = download_xkcd_comic(comic_id)
     try:
         post_comic(vk_group_id, file_path, comment, vk_vers, vk_app_token)
+    except HTTPErrorVK as err:
+        print("HTTPErrorVK:", err)
     finally:
         os.remove(file_path)
 
