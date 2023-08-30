@@ -42,7 +42,6 @@ def download_xkcd_comic(comic_id):
 
 
 def raise_vk_error(response):
-    response = response.json()
     if 'error' in response:
         raise HTTPErrorVK(response['error']['error_msg'])
 
@@ -56,8 +55,9 @@ def get_server_url(vk_group_id, vk_vers, vk_app_token):
     header = {'Authorization': f'Bearer {vk_app_token}'}
     response = requests.get(url, params=payload, headers=header)
     response.raise_for_status()
+    response = response.json()
     raise_vk_error(response)
-    return response.json()['response']['upload_url']
+    return response['response']['upload_url']
 
 
 def upload_file_to_serv(serv_url, file_path):
@@ -65,8 +65,9 @@ def upload_file_to_serv(serv_url, file_path):
         payload = {'photo': file}
         response = requests.post(serv_url, files=payload)
     response.raise_for_status()
+    response = response.json()
     raise_vk_error(response)
-    return response.json()
+    return response
 
 
 def save_file_to_album(vk_group_id, hash_, photo_,
@@ -82,8 +83,9 @@ def save_file_to_album(vk_group_id, hash_, photo_,
     header = {'Authorization': f'Bearer {vk_app_token}'}
     response = requests.post(url, params=payload, headers=header)
     response.raise_for_status()
+    response = response.json()
     raise_vk_error(response)
-    return response.json()
+    return response
 
 
 def post_on_wall(img_media_id, img_owner_id, comment,
@@ -100,8 +102,9 @@ def post_on_wall(img_media_id, img_owner_id, comment,
     header = {'Authorization': f'Bearer {vk_app_token}'}
     response = requests.post(url, params=payload, headers=header)
     response.raise_for_status()
+    response = response.json()
     raise_vk_error(response)
-    return response.json()
+    return response
 
 
 def post_comic(vk_group_id, file_path, comment, vk_vers, vk_app_token):
